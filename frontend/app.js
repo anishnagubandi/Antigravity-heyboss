@@ -5,36 +5,9 @@ let socket = null;
 let reconnectInterval = 5000;
 
 function startWebSocketConnection() {
-    if (!currentUser) return;
-    if (socket) socket.close();
-
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws/${currentUser.user_id}`;
-    
-    socket = new WebSocket(wsUrl);
-
-    socket.onopen = () => {
-        console.log('[WebSocket] Connected successfully as', currentUser.user_id);
-    };
-
-    socket.onmessage = (event) => {
-        console.log('[WebSocket] Message received from server:', event.data);
-        try {
-            const data = JSON.parse(event.data);
-            triggerNotification(data);
-        } catch (e) {
-            console.error('[WebSocket] Failed to parse message:', e);
-        }
-    };
-
-    socket.onclose = () => {
-        console.log('[WebSocket] Disconnected. Retrying...');
-        setTimeout(startWebSocketConnection, reconnectInterval);
-    };
-
-    socket.onerror = (err) => {
-        console.error('[WebSocket] Error:', err);
-    };
+    // WebSocket is not supported on Vercel serverless.
+    // Notifications are handled by the local polling loop (checkScheduleForNotifications).
+    console.log('[Notifications] Using local polling for reminders (Vercel mode).');
 }
 
 // ── Notification Engine (High Precision) ───────────────────────────────
@@ -387,13 +360,20 @@ async function handleManualSubmit(e) {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ user_id: currentUser.user_id, schedule: [item] })
         });
+        const data = await res.json();
         if (res.ok) {
             e.target.reset();
             toggleScheduleUI();
             fetchSchedule();
+        } else {
+            // Show the exact DB error to help with debugging
+            const errMsg = data.detail || JSON.stringify(data);
+            console.error('Save failed (server):', errMsg);
+            alert(`Failed to save schedule. Server error:\n\n${errMsg}`);
         }
-    } catch (e) {
-        console.error('Save failed', e);
+    } catch (err) {
+        console.error('Save failed (network):', err);
+        alert('Network error when saving. Check console.');
     }
     btn.disabled = false;
 }
