@@ -47,8 +47,6 @@ mock_db = {
 }
 
 # --- Real-Time SSE & WebSocket Registry ---
-# Note: WebSockets may have limitations on Vercel Serverless (often disconnected after 10-30s)
-# SSE is slightly better for notifications but still subject to timeout.
 class ConnectionManager:
     def __init__(self):
         self.active_connections: dict[str, list[WebSocket]] = {}
@@ -144,7 +142,6 @@ async def register(req: RegisterReq):
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
     else:
-        # Mocking persistence is not possible on short-lived lambda
         return {"user": {"user_id": user_id, "name": req.name, "email": req.email}, "note": "Mock DB not persistent on Vercel"}
         
     return {"user": {"user_id": user_id, "name": req.name, "email": req.email}}
@@ -184,7 +181,6 @@ async def parse_prescription(req: ParseReq):
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"AI Error: {e}")
     else:
-        # Simple mock logic
         return {"schedule": [{"medication": "Sample Med", "time": "09:00", "frequency": "Daily", "instructions": "Take with water"}]}
 
 @app.post("/api/save_schedule")
@@ -234,21 +230,14 @@ async def notification_stream(user_id: str):
 
 @app.get("/api/cron/morning")
 async def morning_cron():
-    """Triggered by Vercel Cron. Sends encouraging daily messages."""
     if not supabase: return {"status": "no-db"}
-    
     users = supabase.table("users").select("*").execute().data
     for user in users:
-        # Logic to send browser notification or just log for now
-        # On Vercel, we can't 'push' to a browser easily without an active SSE/WS.
-        # This endpoint is primarily for future extensibility (Email/SMS).
         print(f"Morning greeting for {user['name']}")
     return {"status": "ok", "users_processed": len(users)}
 
 @app.get("/api/cron/check-meds")
 async def check_meds_cron():
-    """Triggered every minute by an external pinger (e.g. cron-job.org)."""
-    # Calculate IST time (UTC + 5:30)
     ist_now = datetime.utcnow() + timedelta(hours=5, minutes=30)
     now_str = ist_now.strftime("%H:%M")
     today_date_str = ist_now.strftime("%Y-%m-%d")

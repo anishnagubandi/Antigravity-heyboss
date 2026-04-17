@@ -1,5 +1,7 @@
 .env
 venv/
+venv_backup/
+git_backup/
 __pycache__/
 *.pyc
 .vercel
