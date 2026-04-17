@@ -10,7 +10,7 @@ function startWebSocketConnection() {
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/ws/${currentUser.user_id}`;
-
+    
     socket = new WebSocket(wsUrl);
 
     socket.onopen = () => {
@@ -55,9 +55,9 @@ function checkScheduleForNotifications() {
     const now = new Date();
     const nowStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
     const todayDateStr = now.toISOString().split('T')[0];
-
+    
     // JS 0=Sun, 1=Mon...6=Sat. Convert to 0=Mon...6=Sun
-    let todayDOW = now.getDay();
+    let todayDOW = now.getDay(); 
     let todayWeekday = todayDOW === 0 ? 6 : todayDOW - 1;
 
     currentActiveSchedule.forEach(item => {
@@ -165,6 +165,7 @@ function toggleScheduleUI() {
 // ── Core Application Logic ───────────────────────────────────────────
 let currentUser = null;
 let currentActiveSchedule = [];
+let pendingSchedule = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     initSession();
@@ -206,7 +207,7 @@ async function handleLogin(e) {
     try {
         const res = await fetch('/api/login', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ email, password })
         });
         const data = await res.json();
@@ -233,7 +234,7 @@ async function handleRegister(e) {
     try {
         const res = await fetch('/api/register', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ name, email, password, phone, reminder_opt: true })
         });
         const data = await res.json();
@@ -243,11 +244,9 @@ async function handleRegister(e) {
             showDashboard();
         } else {
             err.textContent = data.detail || 'Registration failed';
-            console.error('[Register] Error detail:', data.detail);
         }
-    } catch (e) {
+    } catch {
         err.textContent = 'Connection error';
-        console.error('[Register] Fetch error:', e);
     }
 }
 
@@ -255,7 +254,7 @@ function showDashboard() {
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('dashboard-screen').classList.remove('hidden');
     document.getElementById('user-greeting').textContent = `Welcome, ${currentUser.name}`;
-
+    
     startWebSocketConnection();
     startNotificationLoop();
     fetchSchedule();
@@ -327,21 +326,14 @@ function renderSchedule() {
 async function markAsDone(medication, time) {
     if (!confirm(`Mark ${medication} as taken?`)) return;
     try {
-        // 1. Log the completion to daily_logs
-        await fetch('/api/logs', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ user_id: currentUser.user_id, medication: medication, status: 'taken' })
-        });
-
-        // 2. Delete from schedule
         const res = await fetch(`/api/schedule/${currentUser.user_id}/${encodeURIComponent(medication)}/${encodeURIComponent(time)}`, {
             method: 'DELETE'
         });
         if (res.ok) {
+            // Play celebratory tune
             const successSound = new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3');
             successSound.play().catch(e => console.log('Audio playback failed:', e));
-
+            
             document.getElementById('congrats-dialog').classList.remove('hidden');
             fetchSchedule();
         }
@@ -392,7 +384,7 @@ async function handleManualSubmit(e) {
     try {
         const res = await fetch('/api/save_schedule', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ user_id: currentUser.user_id, schedule: [item] })
         });
         if (res.ok) {
@@ -404,4 +396,13 @@ async function handleManualSubmit(e) {
         console.error('Save failed', e);
     }
     btn.disabled = false;
+}
+
+function approveSchedule() {
+    // Reverted AI Parser logic not strictly needed if chat is removed, 
+    // but kept for backward compatibility if user approves a last parse.
+}
+
+function rejectSchedule() {
+    document.getElementById('validation-dialog').classList.add('hidden');
 }

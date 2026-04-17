@@ -11,7 +11,7 @@
     --white: #FFFFFF;
     --border: #CCCCCC;
     --radius: 8px;
-    --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    --shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 * {
@@ -40,15 +40,12 @@ body {
     margin-bottom: 2rem;
 }
 
-h1,
-h2,
-h3 {
+h1, h2, h3 {
     color: var(--text-primary);
     margin-bottom: 0.5rem;
 }
 
-.subtitle,
-.section-desc {
+.subtitle, .section-desc {
     color: var(--text-secondary);
     margin-bottom: 1.5rem;
 }
@@ -162,8 +159,7 @@ button:active {
     color: var(--warning);
 }
 
-.radio-group,
-.checkbox-group {
+.radio-group, .checkbox-group {
     margin-bottom: 1.5rem;
 }
 
@@ -225,7 +221,7 @@ header {
     border-left: 4px solid var(--warning);
     border-radius: var(--radius);
     padding: 1rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     animation: slideIn 0.3s ease-out;
     margin-bottom: 1rem;
 }
@@ -269,15 +265,8 @@ header {
 }
 
 @keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+    from { opacity: 0; transform: translateX(10px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
 /* Table styling */
@@ -290,8 +279,7 @@ table {
     border-collapse: collapse;
 }
 
-th,
-td {
+th, td {
     padding: 1rem;
     text-align: left;
     border-bottom: 1px solid var(--border);
@@ -316,7 +304,7 @@ th {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0,0,0,0.5);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -351,7 +339,6 @@ th {
     display: flex;
     gap: 1rem;
 }
-
 /* Advanced Scheduling UI */
 .schedule-type-selector {
     display: flex;
@@ -386,7 +373,7 @@ th {
     background: var(--white);
 }
 
-.day-checkbox:checked+.day-label {
+.day-checkbox:checked + .day-label {
     background: var(--primary);
     color: white;
     border-color: var(--primary);

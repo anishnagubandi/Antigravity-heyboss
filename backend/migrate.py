@@ -1,37 +1,43 @@
-# backend/migrate.py
-import os
 import json
-from dotenv import load_dotenv
+import os
 from supabase import create_client, Client
 
-load_dotenv()
-
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+url = os.getenv("SUPABASE_URL", "https://sleybsliggdcddwwqvdl.supabase.co")
+key = os.getenv("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsZXlic2xpZ2dkY2Rkd3dxdmRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwODQyNDgsImV4cCI6MjA5MTY2MDI0OH0.zrIeQ3EOu2F7xyoO6aJu8Jq1DsMjLSpZbuaccInEH-8")
+supabase: Client = create_client(url, key)
 
 def migrate():
-    if not SUPABASE_URL or "mock" in SUPABASE_URL:
-        print("MOCK Mode: Skipping actual Supabase migration.")
+    print("Reading local db.json...")
+    try:
+        with open("db.json", "r") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        print("db.json not found. Nothing to migrate.")
+        return
+    except Exception as e:
+        print("Error reading db.json:", e)
         return
 
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    users = data.get("users", [])
+    schedules = data.get("schedules", [])
     
-    print("Migrating database schema...")
-    # SKELETON: In a real scenario, this would create tables via RPC or SQL.
-    # Since we can't easily run raw SQL via the client without specific config,
-    # we'll just check if core tables exist.
-    
-    try:
-        supabase.table("users").select("count").limit(1).execute()
-        print("Table 'users' verified.")
-    except:
-        print("Warning: Table 'users' might be missing.")
+    print(f"Found {len(users)} users and {len(schedules)} schedule items.")
 
-    try:
-        supabase.table("schedules").select("count").limit(1).execute()
-        print("Table 'schedules' verified.")
-    except:
-        print("Warning: Table 'schedules' might be missing.")
+    for user in users:
+        print(f"Migrating user: {user.get('name')}...")
+        try:
+            supabase.table("users").upsert(user).execute()
+        except Exception as e:
+            print(f"Error migrating user {user.get('name')}: {e}")
+            
+    for sched in schedules:
+        print(f"Migrating schedule item: {sched.get('medication')}...")
+        try:
+            supabase.table("schedules").upsert(sched).execute()
+        except Exception as e:
+            print("Error migrating schedule:", e)
+
+    print("Migration execution completed!")
 
 if __name__ == "__main__":
     migrate()

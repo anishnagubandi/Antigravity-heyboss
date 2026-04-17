@@ -1,0 +1,42 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "frontend/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "api/index.py"
+    },
+    {
+      "source": "/ws/(.*)",
+      "destination": "api/index.py"
+    }
+  ],
+  "routes": [
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "^/$",
+      "dest": "/frontend/index.html"
+    },
+    {
+      "src": "^/(.*)$",
+      "dest": "/frontend/$1"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/morning",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+Context: A business professional does not have the time to fill every box one by one,so it is easier to type all the things required in a message.
+I want to develop an web application which does the following:
+step-1->handles user login and sign up part using the given username and password which is created or if user is logged in already (check from the backend database) and confirm it.
+1.1)if passwords dont match during a login display a error message and ask them to fill the details again.
+step-2->takes in the prescription in the form of a paragraph and then confirms with the user  if the genrerated schedule is correct or not.
+2.1)in the screen,a chat screen should appear and it should display a message to ask the user to type in his prescription.
+2.2)after the user types in the prescription and sends it into the chat,the chatbot should use the given text to convert it into a schedule which is neatly formatted and show it to the user for validation.if the user agrees, the text should be fixed as the right schedule.
+step-3->the schedule which was validated should be managed using a calendar and on the day of medication:
+3.1) in the morning, around 6am a notification should pop up reminding the user of taking care of putting the meds in the bag.(also while displaying this, you should also send a customized notifcation based on what happened on the previous day.
+3.2)if the previous day was good and the user maintained the schedule, a congratulatory message should appear and if user failed to follow the entire schedule, a message showing which time and med he failed to take should appear along with a you can do it message.
+3.3)when the time of med arrives, a yes or no notification should pop up which helps in taking care whether the med was taken or not at the right time.
+3.4)at the end of the day, the overall results of the day should be messaged in a notification.
+
+Now, for the core things which need to be used:
+1)use Telegram related api's to send the notifications to the registered user
+2)Regarding ui, follow the .md file given to you.
+3)Use a backend database like Supabase to store the registration details
+4)In the backend database try to maintain the daily logs of a user so that the bot can check and return the progress of a user.
+5)maintain separate daily log files for each user
+6)the log files and the registration files should not be the same and should be separate.
+
+Don'ts:
+1)Do not hallucinate

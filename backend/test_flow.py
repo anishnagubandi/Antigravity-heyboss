@@ -1,65 +1,78 @@
-# backend/test_flow.py
 import requests
 import json
-import time
+import uuid
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:8000/api"
 
-def test_flow():
-    timestamp = int(time.time())
-    email = f"test_{timestamp}@example.com"
-    user = {
+def run_tests():
+    print("Testing End-to-End API Flow...")
+    unique_id = str(uuid.uuid4())[:8]
+    email = f"test_{unique_id}@example.com"
+    
+    # 1. Register
+    print(f"\n1. Registering user {email}...")
+    reg_data = {
         "name": "Test User",
         "email": email,
-        "password": "Password123!",
+        "password": "password123",
         "phone": "1234567890",
         "reminder_opt": True
     }
-    
-    print(f"--- 1. Testing Registration for {email} ---")
-    reg_res = requests.post(f"{BASE_URL}/api/register", json=user)
-    print(f"Status: {reg_res.status_code}")
-    print(f"Response: {reg_res.text}")
-    
-    if reg_res.status_code != 200:
-        print("Registration failed/requires confirmation. Skipping further tests.")
+    res = requests.post(f"{BASE_URL}/register", json=reg_data)
+    if res.status_code != 200:
+        print(f"Register failed: {res.text}")
         return
-
-    user_info = reg_res.json()["user"]
-    user_id = user_info["user_id"]
-    print(f"Registration Successful! User ID: {user_id}")
-
-    print("\n--- 2. Testing Schedule Save ---")
-    item = {
-        "medication": "Vitamin C",
-        "frequency": "daily",
-        "time": "10:00",
-        "instructions": "Take after breakfast"
-    }
-    save_res = requests.post(f"{BASE_URL}/api/save_schedule", json={"user_id": user_id, "schedule": [item]})
-    print(f"Status: {save_res.status_code}")
+    user_id = res.json()["user"]["user_id"]
+    print(f"Registered successfully! User ID: {user_id}")
     
-    print("\n--- 3. Testing Schedule Retrieval ---")
-    get_res = requests.get(f"{BASE_URL}/api/schedule/{user_id}")
-    print(f"Status: {get_res.status_code}")
-    schedule = get_res.json().get("schedule", [])
-    print(f"Items: {len(schedule)}")
-
-    print("\n--- 4. Testing Medication Intake Logging ---")
-    log_res = requests.post(f"{BASE_URL}/api/logs", json={"user_id": user_id, "medication": "Vitamin C", "status": "taken"})
-    print(f"Status: {log_res.status_code}")
-    print(f"Response: {log_res.text}")
-
-    print("\n--- 5. Testing Schedule Item Deletion ---")
-    del_res = requests.delete(f"{BASE_URL}/api/schedule/{user_id}/Vitamin%20C/10:00")
-    print(f"Status: {del_res.status_code}")
-
-    print("\n--- Final Check: Schedule should be empty ---")
-    final_res = requests.get(f"{BASE_URL}/api/schedule/{user_id}")
-    print(f"Final Count: {len(final_res.json().get('schedule', []))}")
+    # 2. Login
+    print("\n2. Logging in...")
+    log_data = {
+        "email": email,
+        "password": "password123"
+    }
+    res = requests.post(f"{BASE_URL}/login", json=log_data)
+    if res.status_code != 200:
+        print(f"Login failed: {res.text}")
+        return
+    print("Logged in successfully!")
+    
+    # 3. Parse Prescription
+    print("\n3. Testing AI Prescription Parse...")
+    parse_data = {
+        "prescription_text": "Take 2 tablets of Paracetamol every 12 hours"
+    }
+    res = requests.post(f"{BASE_URL}/parse_prescription", json=parse_data)
+    if res.status_code != 200:
+        print(f"Parse failed: {res.text}")
+        return
+    schedule_data = res.json()["schedule"]
+    print("AI Parsed Schedule:")
+    print(json.dumps(schedule_data, indent=2))
+    
+    # 4. Save Schedule
+    print("\n4. Saving Schedule...")
+    save_data = {
+        "user_id": user_id,
+        "schedule": schedule_data
+    }
+    res = requests.post(f"{BASE_URL}/save_schedule", json=save_data)
+    if res.status_code != 200:
+        print(f"Save failed: {res.text}")
+        return
+    print("Schedule saved successfully!")
+    
+    # 5. Get Schedule
+    print("\n5. Retrieving Schedule...")
+    res = requests.get(f"{BASE_URL}/schedule/{user_id}")
+    if res.status_code != 200:
+        print(f"Get Schedule failed: {res.text}")
+        return
+    retrieved = res.json()["schedule"]
+    if len(retrieved) > 0:
+        print("Schedule retrieved successfully, E2E Test Passed!")
+    else:
+        print("Schedule retrieve failed: Empty schedule!")
 
 if __name__ == "__main__":
-    try:
-        test_flow()
-    except Exception as e:
-        print(f"Test crashed: {e}")
+    run_tests()
