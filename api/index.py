@@ -123,15 +123,15 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
 # API Routes
 @app.post("/api/register")
 async def register(req: RegisterReq):
-    # Standard UUID for Supabase compatibility
-    user_id = str(uuid.uuid4())
+    user_id = f"usr_{uuid.uuid4().hex[:12]}"
     user_data = {
         "user_id": user_id,
         "name": req.name,
         "email": req.email,
         "password": req.password,
         "phone": req.phone,
-        "reminder_opt": req.reminder_opt
+        "reminder_opt": req.reminder_opt,
+        "telegram_chat_id": None
     }
     
     if supabase:
@@ -191,25 +191,14 @@ async def save_schedule(req: SaveScheduleReq):
         raise HTTPException(status_code=501, detail="Supabase required for saving.")
     
     try:
-        results = []
         for item in req.schedule:
-            # Prepare clean item for DB
-            db_item = {
-                "user_id": req.user_id,
-                "medication": item.get("medication"),
-                "time": item.get("time"),
-                "frequency": item.get("frequency"),
-                "instructions": item.get("instructions"),
-                "specific_date": item.get("specific_date"),
-                "recurring_days": item.get("recurring_days")
-            }
-            # Remove keys with None values to let DB defaults work
-            db_item = {k: v for k, v in db_item.items() if v is not None}
-            
+            item["user_id"] = req.user_id
+            # Mirror original logic: remove only created_at to avoid schema errors
+            db_item = dict(item)
+            db_item.pop("created_at", None)
             res = supabase.table("schedules").insert(db_item).execute()
-            results.append(res.data)
-        
-        return {"status": "ok", "saved": len(results)}
+            print(f"Schedule saved: {res.data}")
+        return {"status": "ok"}
     except Exception as e:
         print(f"Save Schedule Error: {e}")
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
