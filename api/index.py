@@ -22,7 +22,7 @@ try:
 except ImportError:
     Client = None
 
-load_dotenv()
+# load_dotenv() removed to favor Vercel system environment variables
 
 app = FastAPI()
 
