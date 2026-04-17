@@ -134,7 +134,7 @@ async def register(req: RegisterReq):
         
         # Insert into profiles table (linked to auth.users)
         supabase.table("profiles").upsert({
-            "user_id": user_id,
+            "id": user_id,
             "name": req.name,
             "phone": req.phone
         }).execute()
@@ -156,7 +156,7 @@ async def login(req: LoginReq):
         user_id = auth_res.user.id
         
         # Fetch name from profiles table
-        profile_res = supabase.table("profiles").select("name, phone").eq("user_id", user_id).execute()
+        profile_res = supabase.table("profiles").select("name, phone").eq("id", user_id).execute()
         name = profile_res.data[0]["name"] if profile_res.data else req.email
         
         return {"user": {"user_id": user_id, "name": name, "email": req.email}}
