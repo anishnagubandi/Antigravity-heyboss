@@ -226,6 +226,16 @@ async def notification_stream(user_id: str):
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
+@app.get("/api/debug")
+async def debug_env():
+    return {
+        "supabase_url_exists": os.getenv("SUPABASE_URL") is not None,
+        "supabase_url_is_mock": "mock" in os.getenv("SUPABASE_URL", ""),
+        "supabase_key_exists": os.getenv("SUPABASE_KEY") is not None,
+        "supabase_client_initialized": supabase is not None,
+        "supabase_library_loaded": Client is not None
+    }
+
 # --- Cron Endpoints ---
 
 @app.get("/api/cron/morning")
