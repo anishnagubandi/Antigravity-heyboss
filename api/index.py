@@ -123,41 +123,46 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
 # API Routes
 @app.post("/api/register")
 async def register(req: RegisterReq):
-    user_id = str(uuid.uuid4())
-    user_data = {
-        "user_id": user_id,
-        "name": req.name,
-        "email": req.email,
-        "password": req.password,
-        "phone": req.phone,
-        "reminder_opt": req.reminder_opt,
-        "telegram_chat_id": None
-    }
-    
-    if supabase:
-        try:
-            res = supabase.table("users").insert(user_data).execute()
-            if res.data:
-                user_data = res.data[0]
-                user_id = user_data["user_id"]
-        except Exception as e:
-            print(f"Registration Error: {e}")
-            raise HTTPException(status_code=400, detail=str(e))
-    else:
-        return {"user": {"user_id": user_id, "name": req.name, "email": req.email}, "note": "Mock DB not persistent on Vercel"}
+    if not supabase:
+        raise HTTPException(status_code=501, detail="Supabase required.")
+    try:
+        # Use native Supabase Auth to create the user
+        auth_res = supabase.auth.sign_up({"email": req.email, "password": req.password})
+        if not auth_res.user:
+            raise HTTPException(status_code=400, detail="Sign up failed.")
+        user_id = auth_res.user.id
         
-    return {"user": {"user_id": user_id, "name": req.name, "email": req.email}}
+        # Insert into profiles table (linked to auth.users)
+        supabase.table("profiles").upsert({
+            "user_id": user_id,
+            "name": req.name,
+            "phone": req.phone
+        }).execute()
+        
+        return {"user": {"user_id": user_id, "name": req.name, "email": req.email}}
+    except Exception as e:
+        print(f"Registration Error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/api/login")
 async def login(req: LoginReq):
-    if supabase:
-        res = supabase.table("users").select("*").eq("email", req.email).eq("password", req.password).execute()
-        if not res.data:
+    if not supabase:
+        raise HTTPException(status_code=501, detail="Supabase required.")
+    try:
+        # Use native Supabase Auth to sign in
+        auth_res = supabase.auth.sign_in_with_password({"email": req.email, "password": req.password})
+        if not auth_res.user:
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        user = res.data[0]
-        return {"user": {"user_id": user["user_id"], "name": user["name"], "email": user["email"]}}
-    else:
-        raise HTTPException(status_code=501, detail="Supabase not configured. Login requires database.")
+        user_id = auth_res.user.id
+        
+        # Fetch name from profiles table
+        profile_res = supabase.table("profiles").select("name, phone").eq("user_id", user_id).execute()
+        name = profile_res.data[0]["name"] if profile_res.data else req.email
+        
+        return {"user": {"user_id": user_id, "name": name, "email": req.email}}
+    except Exception as e:
+        print(f"Login Error: {e}")
+        raise HTTPException(status_code=401, detail=str(e))
 
 @app.post("/api/parse_prescription")
 async def parse_prescription(req: ParseReq):
