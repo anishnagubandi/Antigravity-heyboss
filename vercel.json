@@ -18,19 +18,10 @@
     {
       "source": "/ws/(.*)",
       "destination": "api/index.py"
-    }
-  ],
-  "routes": [
-    {
-      "handle": "filesystem"
     },
     {
-      "src": "^/$",
-      "dest": "/frontend/index.html"
-    },
-    {
-      "src": "^/(.*)$",
-      "dest": "/frontend/$1"
+      "source": "/(.*)",
+      "destination": "/frontend/$1"
     }
   ],
   "crons": [
