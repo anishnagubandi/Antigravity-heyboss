@@ -1,0 +1,51 @@
+# Recovery Supervision Service - Registration UI Design
+
+## 🎨 Color Palette
+- **Primary (Action/Buttons):** #4CAF50 (Green)  
+- **Secondary (Highlights/Headers):** #2196F3 (Blue)  
+- **Background:** #F5F5F5 (Light Gray)  
+- **Text (Primary):** #212121 (Dark Gray/Black)  
+- **Text (Secondary/Labels):** #757575 (Medium Gray)  
+- **Consent/Warning Notes:** #FF9800 (Orange)
+
+---
+
+## 🖥️ Registration Form Layout
+
+### Step 1: Basic Information
+- **Name:** [__________]  
+- **Email:** [__________]  
+- **Phone Number (Telegram-linked):** [__________]  
+
+### Step 2: Reminder Preferences
+Would you like to receive reminders via Telegram?  
+- ☐ Yes  
+- ☐ No  
+
+### Step 3: Consent
+- ☐ I agree to receive automated reminders related to my recovery plan through Telegram.  
+- ☐ I understand I can opt out anytime by sending "STOP" to the bot.  
+
+---
+
+## 📂 Backend Storage Example
+| Field              | Example Value         |
+|--------------------|-----------------------|
+| user_id            | 12345                 |
+| name               | "Antigravity"         |
+| email              | "user@example.com"    |
+| phone_number       | "+91XXXXXXXXXX"       |
+| reminder_opt_in    | TRUE                  |
+| preferred_channel  | "Telegram"            |
+| consent_timestamp  | "2026-04-13 13:08 UTC"|
+
+---
+
+## 🎨 UI Styling Notes
+- **Form Background:** Light gray (#F5F5F5) for a clean, neutral look.  
+- **Input Fields:** White background with subtle border (#CCCCCC).  
+- **Labels:** Medium gray (#757575) for readability.  
+- **Buttons:** Green (#4CAF50) with white text for "Register".  
+- **Hover State:** Darker green (#388E3C).  
+- **Consent Section:** Orange (#FF9800) accent to draw attention.  
+.idhi ui kosam

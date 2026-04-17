@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HeyBoss Recovery Supervision</title>
+    <meta name="description" content="Recovery management and notification system">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="app">
+        <!-- Auth Screen (Login / Register) -->
+        <main id="auth-screen" class="screen">
+            <div class="auth-container card">
+                <h1>Recovery Supervision</h1>
+                <p class="subtitle">Log in or create a new profile</p>
+
+                <div class="tabs">
+                    <button id="tab-login" class="tab active" onclick="switchAuthTab('login')">Login</button>
+                    <button id="tab-register" class="tab" onclick="switchAuthTab('register')">Register</button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="form-login" class="auth-form" onsubmit="handleLogin(event)">
+                    <div class="input-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <p id="login-error" class="error-msg"></p>
+                    <button type="submit" class="btn-primary">Log In</button>
+                </form>
+
+                <!-- Register Form -->
+                <form id="form-register" class="auth-form hidden" onsubmit="handleRegister(event)">
+                    <div class="step-title">Step 1: Basic Information</div>
+                    <div class="input-group">
+                        <label for="reg-name">Full Name</label>
+                        <input type="text" id="reg-name" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="reg-email">Email</label>
+                        <input type="email" id="reg-email" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="reg-password">Password</label>
+                        <input type="password" id="reg-password" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="reg-phone">Phone Number</label>
+                        <input type="tel" id="reg-phone" placeholder="e.g. +123456789" required>
+                    </div>
+
+                    <div class="step-title consent-title">Step 2: Consent</div>
+                    <div class="checkbox-group warning-box">
+                        <label><input type="checkbox" id="consent-1" required> I agree to allow HeyBoss to manage my
+                            recovery plan and send me automated reminders.</label>
+                    </div>
+
+                    <p id="reg-error" class="error-msg"></p>
+                    <button type="submit" class="btn-primary">Register</button>
+                </form>
+            </div>
+        </main>
+
+        <!-- Main Dashboard (Prescription & Schedule) -->
+        <main id="dashboard-screen" class="screen hidden">
+            <header>
+                <h2>HeyBoss Dashboard</h2>
+                <div class="header-actions">
+                    <span id="user-greeting">Welcome</span>
+                    <button onclick="logout()" class="btn-secondary">Logout</button>
+                </div>
+            </header>
+
+            <div class="dashboard-content">
+                <!-- Manual Prescription Upload -->
+                <section class="manual-section card">
+                    <h3>Add Medication Manually</h3>
+                    <p class="section-desc">Enter your medication details directly.</p>
+                    <form id="manual-form" class="auth-form" onsubmit="handleManualSubmit(event)"
+                        style="margin-top: 1rem;">
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                <div class="input-group" style="flex: 1; min-width: 200px;">
+                                    <label for="manual-med">Medication Name</label>
+                                    <input type="text" id="manual-med" required placeholder="e.g. Paracetamol">
+                                </div>
+                                <div class="input-group" style="flex: 1; min-width: 150px;">
+                                    <label for="manual-freq">Frequency / Schedule Type</label>
+                                    <select id="schedule-type" onchange="toggleScheduleUI()"
+                                        style="width: 100%; padding: 0.75rem; border-radius: 4px; border: 1px solid #ccc;">
+                                        <option value="daily">Daily</option>
+                                        <option value="specific">Specific Date</option>
+                                        <option value="recurring">Recurring Days</option>
+                                    </select>
+                                </div>
+                            </li>
+                            <li id="row-specific-date" class="hidden">
+                                <div class="input-group">
+                                    <label for="manual-date">Select Date</label>
+                                    <input type="date" id="manual-date">
+                                </div>
+                            </li>
+                            <li id="row-recurring-days" class="hidden">
+                                <div class="input-group">
+                                    <label>Select Days of Week</label>
+                                    <div class="day-selector">
+                                        <input type="checkbox" id="day-0" class="day-checkbox">
+                                        <label for="day-0" class="day-label">M</label>
+                                        <input type="checkbox" id="day-1" class="day-checkbox">
+                                        <label for="day-1" class="day-label">T</label>
+                                        <input type="checkbox" id="day-2" class="day-checkbox">
+                                        <label for="day-2" class="day-label">W</label>
+                                        <input type="checkbox" id="day-3" class="day-checkbox">
+                                        <label for="day-3" class="day-label">T</label>
+                                        <input type="checkbox" id="day-4" class="day-checkbox">
+                                        <label for="day-4" class="day-label">F</label>
+                                        <input type="checkbox" id="day-5" class="day-checkbox">
+                                        <label for="day-5" class="day-label">S</label>
+                                        <input type="checkbox" id="day-6" class="day-checkbox">
+                                        <label for="day-6" class="day-label">S</label>
+                                    </div>
+                                </div>
+                            </li>
+                            <li style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                <div class="input-group" style="flex: 1; min-width: 250px;">
+                                    <label>Time</label>
+                                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                        <input type="number" id="manual-hour" required min="1" max="12" placeholder="HH"
+                                            style="width: 70px;">
+                                        <span>:</span>
+                                        <input type="number" id="manual-min" required min="0" max="59" placeholder="MM"
+                                            style="width: 70px;">
+                                        <select id="manual-ampm"
+                                            style="padding: 0.5rem; border-radius: 4px; border: 1px solid #ccc;">
+                                            <option value="AM">AM</option>
+                                            <option value="PM">PM</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="input-group" style="flex: 2; min-width: 200px;">
+                                    <label for="manual-inst">Instructions</label>
+                                    <input type="text" id="manual-inst" placeholder="e.g. Take after meal">
+                                </div>
+                            </li>
+                        </ul>
+                        <p id="manual-error" class="error-msg"></p>
+                        <button type="submit" class="btn-primary" id="btn-manual-save">Add to Schedule</button>
+                    </form>
+                </section>
+
+                <!-- Schedule Table -->
+                <section class="schedule-section card">
+                    <h3>Your Daily Routine <button onclick="fetchSchedule()" class="btn-icon">↻</button></h3>
+                    <div class="table-responsive">
+                        <table id="schedule-table">
+                            <thead>
+                                <tr>
+                                    <th>Medication</th>
+                                    <th>When</th>
+                                    <th>Time</th>
+                                    <th>Instructions</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="schedule-tbody">
+                                <tr>
+                                    <td colspan="5" class="empty-state">No schedule generated yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Notifications Box -->
+                <section class="notification-section card">
+                    <h3>Notifications <span id="notif-badge" class="badge hidden">0</span></h3>
+                    <p class="section-desc">Your active reminders will appear here.</p>
+                    <div id="notification-container" class="notification-container">
+                        <div class="empty-state" id="notif-empty-state">No active notifications.</div>
+                    </div>
+                </section>
+
+                <!-- Congratulation Popup -->
+                <div id="congrats-dialog" class="validation-overlay hidden">
+                    <div class="validation-card card" style="text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🎉</div>
+                        <h3 style="color: #4CAF50;">Congratulations!</h3>
+                        <p>You have successfully completed your schedule for this medication! Keep up the amazing work
+                            on your recovery journey!</p>
+                        <div class="validation-actions" style="justify-content: center; margin-top: 1.5rem;">
+                            <button onclick="document.getElementById('congrats-dialog').classList.add('hidden')"
+                                class="btn-primary">Awesome!</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
