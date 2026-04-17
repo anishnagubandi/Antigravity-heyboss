@@ -123,7 +123,8 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
 # API Routes
 @app.post("/api/register")
 async def register(req: RegisterReq):
-    user_id = f"usr_{uuid.uuid4().hex[:12]}"
+    # Standard UUID for Supabase compatibility
+    user_id = str(uuid.uuid4())
     user_data = {
         "user_id": user_id,
         "name": req.name,
@@ -140,6 +141,7 @@ async def register(req: RegisterReq):
                 user_data = res.data[0]
                 user_id = user_data["user_id"]
         except Exception as e:
+            print(f"Registration Error: {e}")
             raise HTTPException(status_code=400, detail=str(e))
     else:
         return {"user": {"user_id": user_id, "name": req.name, "email": req.email}, "note": "Mock DB not persistent on Vercel"}
@@ -188,13 +190,29 @@ async def save_schedule(req: SaveScheduleReq):
     if not supabase:
         raise HTTPException(status_code=501, detail="Supabase required for saving.")
     
-    for item in req.schedule:
-        item["user_id"] = req.user_id
-        db_item = dict(item)
-        db_item.pop("created_at", None)
-        supabase.table("schedules").insert(db_item).execute()
-    
-    return {"status": "ok"}
+    try:
+        results = []
+        for item in req.schedule:
+            # Prepare clean item for DB
+            db_item = {
+                "user_id": req.user_id,
+                "medication": item.get("medication"),
+                "time": item.get("time"),
+                "frequency": item.get("frequency"),
+                "instructions": item.get("instructions"),
+                "specific_date": item.get("specific_date"),
+                "recurring_days": item.get("recurring_days")
+            }
+            # Remove keys with None values to let DB defaults work
+            db_item = {k: v for k, v in db_item.items() if v is not None}
+            
+            res = supabase.table("schedules").insert(db_item).execute()
+            results.append(res.data)
+        
+        return {"status": "ok", "saved": len(results)}
+    except Exception as e:
+        print(f"Save Schedule Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/api/schedule/{user_id}")
 async def get_schedule(user_id: str):
