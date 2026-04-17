@@ -10,18 +10,25 @@
       "use": "@vercel/static"
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "api/index.py"
+      "src": "/api/(.*)",
+      "dest": "api/index.py"
     },
     {
-      "source": "/ws/(.*)",
-      "destination": "api/index.py"
+      "src": "/ws/(.*)",
+      "dest": "api/index.py"
     },
     {
-      "source": "/(.*)",
-      "destination": "/frontend/$1"
+      "src": "/frontend/(.*)",
+      "dest": "/frontend/$1"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/$1"
     }
   ],
   "crons": [
