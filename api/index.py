@@ -123,7 +123,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
 # API Routes
 @app.post("/api/register")
 async def register(req: RegisterReq):
-    user_id = f"usr_{uuid.uuid4().hex[:12]}"
+    user_id = str(uuid.uuid4())
     user_data = {
         "user_id": user_id,
         "name": req.name,
